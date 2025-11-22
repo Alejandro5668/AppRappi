@@ -1,1 +1,166 @@
+# Preguntas Generales sobre el Proyecto
 
+## Organización y validación general
+
+• ¿Cómo organizaron el trabajo entre los miembros del equipo? ¿Qué rol asumió cada integrante?
+
+R/ Roles según cada persona:  
+Sergio Martinez: Encargado de responder las preguntas con base en cada aporte de cada compañero y claramente basado en el código del programa.  
+Alejandro: Programador general, diseñó la estructura general del proyecto respecto al back y el front end de dicho sistema
+
+Victor: Junto con Alejandro, se encargó de diseñar las vistas del programa y mostrar las diferentes funcionalidades requeridas
+
+Oriana: Se encargó de entender el código fuente, interpretó y elaboró el archivo txt "Readme" para dar a conocer el funcionamiento general de dicho programa
+
+• ¿Qué casos de prueba utilizaron para verificar la funcionalidad del sistema?
+
+R/
+
+-Registro y consulta de clientes, domiciliarios y restaurantes para validar que se gestionan correctamente las entidades.
+
+-Creación, asignación, entrega y cancelación de pedidos, asegurando que el ciclo completo de un pedido funciona según lo esperado.
+
+-Búsqueda del restaurante y domiciliario más cercano para comprobar que el sistema encuentra correctamente las entidades más próximas.
+
+-Visualización de pedidos activos, entregados y cancelados para verificar el seguimiento del estado de los pedidos.
+
+-Historial de pedidos por cliente o zona para corroborar que se guarda y puede consultarse la información histórica.
+
+• ¿Cómo estructuraron el flujo general del sistema? ¿Qué módulos principales lo componen?
+
+R/ Utilizamos diferentes flujos del sistema. Pero en sí el programa se divide en 3 secciones estructuradas:  
+**1) Módulo cliente**: Muestra y registra los datos del cliente para gestionar de manera organizada toda la información respecto a los clientes ( Registrar cliente, iniciar sesión, salir, y ver clientes)
+
+**2) Módulo Restaurante:** En este módulo permite registrar los restaurantes, zonas de los restaurantes y gestionar menús de éstos mismos (Gestionar menú, registrarse, ver restaurantes y salir)
+
+**3) Módulo domiciliario**: Permite registrar almacenar y procesar información sobre los domiciliarios(registrarse con código, , iniciar sesión, registrarse en zonas, ver pedidos activos, cambiar ubicación)
+
+• ¿Qué validaciones implementaron para garantizar que los datos de clientes, restaurantes, pedidos y domiciliarios estén correctos?
+
+R/ Implementamos dato por dato a clientes, restaurantes y domiciliarios. Posterior a esto, procedemos a realizar el pedido con la información anterior y la validación como tal se confirma cuando el sistema permite hacer el pedido, de otra manera o caso contrario no permitiría realizar el pedido.
+
+## Pilas y Colas
+
+• ¿Cómo implementaron la cola de pedidos pendientes o en espera? ¿Manejan diferentes prioridades (por zona o tiempo de solicitud)?
+
+R/ Implementamos la cola de pedidos pendientes usando nuestra clase Cola\<Pedido\> pedidosActivos en el sistema central. Decidimos que, por simplicidad en esta primera versión, no manejamos diferentes prioridades - todos los pedidos se atienden por orden de llegada. Si el proyecto escala, consideraremos prioridades por tiempo de espera.
+
+• ¿Cómo garantizaron que los pedidos de la misma prioridad se atiendan en orden FIFO?
+
+R/ Nuestra implementación de Cola.java con ArrayList asegura el comportamiento FIFO: cuando encolamos un pedido va al final de la lista, y al desencolar siempre sacamos el primero. Así mantenemos justicia en la atención.
+
+• ¿Cómo implementaron la pila para registrar o deshacer acciones recientes (por ejemplo, cancelaciones o entregas)? ¿Qué información almacena cada entrada?
+
+R/ Diseñamos tres pilas especializadas:
+
+- historialPedidos: guarda todos los pedidos para tener traza completa
+
+- pedidosCancelados: específica para cancelaciones, nos ayuda a analizar patrones
+
+- pedidosEntregados: nos permite revisar entregas recientes rápidamente  
+Cada entrada guarda el pedido completo para poder recuperar toda la información si es necesario.
+
+## Listas (simples, dobles, circulares)
+
+• ¿Cómo implementaron la lista ligada simple para registrar los clientes o pedidos? ¿Cómo realizan la inserción y búsqueda?
+
+**R/** Desarrollamos nuestra propia ListaSimple\<T\> porque queríamos control total. Para clientes, restaurantes y domiciliarios usamos inserción al final con insertarFin() y búsqueda lineal. Sabemos que no es lo más eficiente, pero para el volumen actual funciona bien.
+
+• ¿Qué ventajas ofrece la lista doblemente ligada para gestionar el registro de domiciliarios disponibles o entregas? ¿Cómo manejan el retiro o reasignación de un domiciliario?
+
+**R/** Honestamente, consideramos lista doblemente ligada para los domiciliarios, pero al final optamos por lista simple para mantener la consistencia en todas nuestras estructuras. Reconozco que para reasignaciones frecuentes sería mejor.
+
+• ¿Cómo se comporta la lista circular para rotar la asignación de pedidos o turnos de domiciliarios? ¿Qué mecanismo asegura que la rotación se actualice correctamente?
+
+**R/** No llegamos a implementar listas circulares. La rotación de domiciliarios la manejamos por disponibilidad y proximidad geográfica usando el grafo.
+
+## Recursión
+
+• ¿En qué parte del sistema usaron recursión (por ejemplo, búsqueda en árbol, recorrido de grafo, cálculo de rutas, o conteo de pedidos)?
+
+**R/** Inicialmente planeamos usar recursión para el DFS en el grafo, pero al final lo implementamos iterativo por temas de estabilidad. Es algo que queremos mejorar en futuras versiones.
+
+**• ¿Cómo definieron el caso base y el caso recursivo? ¿La función garantiza terminación?**
+
+## Árboles
+
+• ¿Cómo integraron el árbol binario en el sistema (por ejemplo, para organizar el historial de pedidos o clasificar el menú por categoría o precio)?
+
+**R/** Consideramos árboles para el menú de restaurantes por categorías, pero al final priorizamos terminar las funcionalidades corre con listas. Es una mejora clara que tenemos identificada.
+
+**• ¿Qué información almacena cada nodo y por qué se eligió esa estructura?**
+
+**R/** En nuestro sistema cada nodo almacena:
+
+**En listas simples:**
+
+- El dato (cliente, restaurante, pedido, etc.)
+
+- Puntero al siguiente nodo
+
+**En el grafo:**
+
+- **Vértices:** Nombre de la zona + lista de conexiones
+
+- **Aristas:** Zona destino + tiempo de viaje
+
+**¿Por qué esta estructura?**  
+Porque es simple y funciona para lo que necesitamos:
+
+- Las listas crecen dinámicamente
+
+- El grafo nos permite calcular rutas óptimas
+
+- Fácil de entender y mantener
+
+Elegimos lo práctico sobre lo complejo.
+
+• ¿Cómo accede el usuario a esta información dentro del sistema? ¿Qué opciones de consulta están disponibles?
+
+R/ Por módulos en el menú principal:
+
+- **Clientes:** Ver pedidos activos, cancelar pedidos, hacer nuevos pedidos
+
+- **Restaurantes:** Gestionar menú, ver pedidos activos
+
+- **Domiciliarios:** Ver pedidos, cambiar estado, buscar restaurantes cercanos
+
+• ¿Implementaron filtros adicionales (por cliente, zona, fecha o tipo de pedido)?
+
+R/ Solo filtro básico por:
+
+- **Cliente** (al iniciar sesión)
+
+- **Zona** (en asignación automática de domiciliarios)
+
+- **Categoría** (en menú de restaurantes)
+
+- No hay filtros por fecha ni tipo de pedido
+
+• ¿Cómo aseguran que los datos del árbol estén sincronizados con otras estructuras como la cola o la lista de pedidos?
+
+R/ **No usamos árboles** - todas las estructuras se sincronizan mediante el SistemaPedidos que actúa como controlador central. Cuando se cancela un pedido, se actualiza:
+
+- La cola de pedidos activos
+
+- La pila de cancelados
+
+- El estado del domiciliario
+
+- El estado del pedido mismo
+
+Todo se mantiene consistente porque hay un único punto de control.
+
+## Grafos
+
+• ¿Cómo implementaron el mapa de la ciudad y las conexiones entre zonas?
+
+**R/** Implementamos GrafoZonas con dos representaciones: una con nuestra propia lista de adyacencia para entender los conceptos, y otra con Map para eficiencia en los algoritmos.
+
+• ¿Cuántos nodos (zonas) definieron y cómo representaron las conexiones (aristas)?
+
+**R/** Cargamos 14 zonas de Santa Marta desde el CSV, que son las principales áreas de cobertura que definimos para la primera versión.
+
+• ¿Qué algoritmo usaron para calcular el restaurante o domiciliario más cercano (por ejemplo, Dijkstra)?
+
+**R/** Usamos **Dijkstra** para encontrar las distancias mínimas y también implementamos **DFS** como alternativa. Dijkstra nos da la ruta óptima, mientras que DFS nos ayuda a explorar todas las posibles conexiones.
