@@ -1,16 +1,16 @@
 package views;
 
+import models.Plato;
+import models.Restaurante;
 import controllers.SistemaPedidos;
 import exceptions.DatosInvalidosException;
-import models.Restaurante;
-import models.Pedido;
-import models.Plato;
 
 import java.util.Scanner;
 
 public class VistaRestaurante {
     private SistemaPedidos sistema;
-    private Scanner sc = new Scanner(System.in);
+    private Restaurante restauranteActual;
+    Scanner Lea = new Scanner(System.in);
 
     public VistaRestaurante(SistemaPedidos sistema) {
         this.sistema = sistema;
@@ -25,19 +25,21 @@ public class VistaRestaurante {
                     "3) Ver restaurantes\n" +
                     "4) Salir\n" +
                     "Que opcion desea ejecutar?: ");
-            String entrada = sc.nextLine();
-
-            if (entrada.isEmpty()) {
+            String entrada = Lea.nextLine();
+            
+            if (entrada.isEmpty()){
                 System.out.println("Debe ingresar un numero, intente de nuevo");
                 continue;
             }
 
-            try {
+            try{
                 opcionIR = Integer.parseInt(entrada);
-            } catch (NumberFormatException e) {
+            }catch(NumberFormatException e){
                 System.out.println("Solo se permiten numeros, intentelo de nuevo");
                 continue;
             }
+
+
 
             switch (opcionIR) {
                 case 1:
@@ -59,22 +61,25 @@ public class VistaRestaurante {
         } while (opcionIR != 4);
     }
 
-    public void registrarRestaurante() {
+
+
+    private void registrarRestaurante() {
 
         try {
 
             System.out.print("Ingrese el nombre del restaurante: ");
-            String nombreRestaurante = sc.nextLine();
+            String nombreRestaurante = Lea.nextLine();
 
             System.out.print("Ingrese el codigo del restaurante: ");
-            String cod = sc.nextLine();
+            String cod = Lea.nextLine();
             int codigo = Integer.parseInt(cod);
 
             sistema.listarZonasDisponibles();
             System.out.print("Ingrese la zona donde se encuentra el restaurante: ");
-            String zonaRestaurante = sc.nextLine();
+            String zonaRestaurante = Lea.nextLine();
 
             Restaurante restauranteNuevo = new Restaurante(nombreRestaurante, codigo, zonaRestaurante);
+            restauranteActual = restauranteNuevo;
             sistema.registrarRestaurante(restauranteNuevo);
             System.out.println("Restaurante registrado exitosamente");
         } catch (NumberFormatException e) {
@@ -85,34 +90,37 @@ public class VistaRestaurante {
 
     }
 
-    private void gestionarMenu() {
+
+
+    private void gestionarMenu(){
 
         System.out.println("----GESTION DE MENU----");
 
         try {
             System.out.println("Ingrese el codigo del restaurante: ");
-            String cod = sc.nextLine();
+            String cod = Lea.nextLine();
             int codigo = Integer.parseInt(cod);
 
             Restaurante restaurante = sistema.consultarRestaurantePorCodigo(codigo);
 
-            if (restaurante == null) {
+            if (restaurante==null){
                 System.out.println("Restaurante no encontrado");
                 return;
             }
 
             menuRestaurante(restaurante);
-        } catch (NumberFormatException e) {
+        } catch(NumberFormatException e){
             System.out.println("El codigo debe ser un numero");
         }
     }
 
-    private void menuRestaurante(Restaurante restaurante) {
+
+    private void menuRestaurante(Restaurante restaurante){
         int opcion = 0;
 
         do {
 
-            System.out.println("Restaurante: " + restaurante.getNombre());
+            System.out.println("Restaurante: "+restaurante.getNombre());
             System.out.println();
 
             System.out.println("1) Agregar Plato al Menu");
@@ -120,9 +128,9 @@ public class VistaRestaurante {
             System.out.println("3) Ver Pedidos Activos");
             System.out.println("4) Salir");
             System.out.print("Opcion: ");
-            opcion = sc.nextInt();
-            sc.nextLine();
-
+            opcion = Lea.nextInt();
+            Lea.nextLine();
+            
             switch (opcion) {
                 case 1:
                     agregarPlato(restaurante);
@@ -141,76 +149,64 @@ public class VistaRestaurante {
                     break;
             }
 
-        } while (opcion != 4);
+        }while(opcion!=4);
 
     }
 
-    private void agregarPlato(Restaurante restaurante) {
-        try {
+    private void agregarPlato(Restaurante restaurante){
+        try{
 
             System.out.println("Ingrese el nombre del plato: ");
-            String nombre = sc.nextLine();
+            String nombre = Lea.nextLine();
 
             System.out.println("Ingrese el precio del plato: ");
-            String pre = sc.nextLine();
+            String pre = Lea.nextLine();
             int precio = Integer.parseInt(pre);
 
             System.out.println("Ingrese la categoria del plato( Entrada, Plato fuerte, Bebida, Postre): ");
-            String categoria = sc.nextLine();
+            String categoria = Lea.nextLine();
 
             Plato plato = new Plato(nombre, categoria, precio);
             restaurante.agregarPlato(plato);
 
             System.out.println("Plato agregado exitosamente");
 
-        } catch (NumberFormatException e) {
+        } catch(NumberFormatException e){
             System.out.println("Valor numerico invalido");
-        } catch (DatosInvalidosException e) {
+        } catch(DatosInvalidosException e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void mostrarMenu(Restaurante restaurante) {
-        System.out.println("Menu del restaurante " + restaurante.getNombre());
+    public void mostrarMenu(Restaurante restaurante){
+        System.out.println("Menu del restaurante "+ restaurante.getNombre());
         System.out.println();
 
-        if (restaurante.getMenu().isEmpty()) {
+        if (restaurante.getMenu().isEmpty()){
             System.out.println("El menu esta vacio");
             return;
         }
 
-        String categorias[] = { "entrada", "plato fuerte", "bebida", "postre" };
+        String categorias [] = {"entrada", "plato fuerte", "bebida", "postre"};
 
         for (String categoria : categorias) {
             boolean hayplatos = false;
             System.out.println(categoria);
 
-            for (int i = 0; i < restaurante.getMenu().getTamanio(); i++) {
+            for (int i=0; i<restaurante.getMenu().getTamanio(); i++){
                 Plato plato = restaurante.getMenu().obtener(i);
 
-                if (plato.getCategoria().equalsIgnoreCase(categoria)) {
-                    System.out.println((i + 1) + ") " + plato.getNombre() + "-" + plato.getPrecio());
+                if (plato.getCategoria().equalsIgnoreCase(categoria)){
+                    System.out.println((i+1)+") "+plato.getNombre()+"-"+plato.getPrecio());
                     hayplatos = true;
                 }
             }
 
-            if (!hayplatos) {
+            if (!hayplatos){
                 System.out.println("No hay platos en esta categoria");
             }
         }
         System.out.println();
-    }
-
-    // Ejemplo de vista para mostrar pedidos del restaurante y el camino completo
-    // (si tiene domiciliario)
-    @SuppressWarnings("unused")
-    public void verPedidosRestaurante(Restaurante rest) {
-        // ...existing código para iterar/seleccionar pedidos del restaurante...
-        Pedido pedidoSeleccionado = null; // ...existing selection logic...
-
-        if (pedidoSeleccionado != null) {
-            sistema.mostrarCaminoCompletoPedido(pedidoSeleccionado);
-        }
     }
 
 }

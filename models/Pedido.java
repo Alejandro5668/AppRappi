@@ -19,9 +19,11 @@ public class Pedido {
 
     public Pedido(int codigo, Cliente cliente, Domiciliario domiciliario, Restaurante restaurante) throws DatosInvalidosException {
 
+        /* 
         if (domiciliario==null){
             throw new DatosInvalidosException("El domciliario no puede estar vacio");
         }
+         */
 
         if (cliente==null){
             throw new DatosInvalidosException("El cliente no puede estar vacio");
@@ -32,6 +34,7 @@ public class Pedido {
         }
 
         this.domiciliario = domiciliario;
+        this.codigo = codigo;
         this.cliente = cliente;
         this.restaurante = restaurante;
         this.estado = "pendiente";
@@ -46,6 +49,14 @@ public class Pedido {
 
     public int getCodigo() {
         return codigo;
+    }
+
+    public ListaSimple<Plato> getPlatos() {
+        return platos;
+    }
+
+    public ListaSimple<Integer> getCantidadTotal() {
+        return cantidadTotal;
     }
 
     public void setCodigo(int codigo) {

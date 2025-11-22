@@ -1,467 +1,189 @@
-package controllers;
+package views;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import models.Domiciliario;
+import models.Restaurante;
+import controllers.SistemaPedidos;
+import exceptions.DatosInvalidosException;
+
 import java.util.Scanner;
-import java.util.Set;
 
-import models.*;
-import structures.*;
+public class VistaDomiciliario {
+    Scanner Lea = new Scanner(System.in);
+    private SistemaPedidos sistema;
+    private Domiciliario domiciliarioActual;
 
-// Nosotros utilizamos esta clase que oficiara de "Controlador" para nuestro sistema, es la que contendra toda
-// La logica del negocio de nuestra app
+    public VistaDomiciliario(SistemaPedidos sistema) {
+        this.sistema = sistema;
+    }
 
-public class SistemaPedidos {
-    ListaSimple<Cliente> clientes;
-    ListaSimple<Restaurante> restaurantes;
-    ListaSimple<Domiciliario> domiciliarios;
-    Cola<Pedido> pedidosActivos;
-    Pila<Pedido> pedidosCancelados;
-    Pila<Pedido> pedidosEntregados;
-    Pila<Pedido> historialPedidos;
+    public void iniciar() {
+        int OpcionDIO = 0;
+        do {
+            System.out.println("----BIENVENIDO A LA VISTA DOMICILIARIO----");
+            System.out.println("1) Registrar Domiciliario\n" +
+                    "2) Iniciar Sesion\n" +
+                    "3) Salir\n" +
+                    "4) Ver Domiciliarios\n" +
+                    "Que opcion desea ejecutar?: ");
+            String entrada = Lea.nextLine();
+            
+            if(entrada.isEmpty()){
+                System.out.println("Debe ingresar un numero");
+                return;
+            }
+            
+            try{
+                OpcionDIO = Integer.parseInt(entrada);
+            } catch(NumberFormatException e){
+                System.out.println("Solo se permiten numeros, intentelo de nuevo");
+                continue;
+            }
 
-    private GrafoZonas grafoZonas;
+            switch (OpcionDIO) {
+                case 1:
+                    registrarDomiciliario();
+                    break;
+                case 2:
+                    iniciarSesion();
+                    break;
+                case 3:
+                    System.out.println("Saliendo de la vista de domiciliario...");
+                    break;
+                case 4:
+                    sistema.verDomiciliarios();
+                    break;
+                default:
+                    System.out.println("Opcion Invalida");
+                    break;
+            }
 
-    public SistemaPedidos() {
-        this.clientes = new ListaSimple<>();
-        this.domiciliarios = new ListaSimple<>();
-        this.restaurantes = new ListaSimple<>();
-        this.pedidosActivos = new Cola<>();
-        this.historialPedidos = new Pila<>();
-        this.pedidosCancelados = new Pila<>();
-        this.pedidosEntregados = new Pila<>();
-        grafoZonas = new GrafoZonas();
+        } while (OpcionDIO != 3);
+    }
+
+    private void registrarDomiciliario() {
+        System.out.println("Registro de domiciliario");
+        
         try {
-            grafoZonas.cargarDesdeCSV("structures/conexiones_santamarta.csv");
-        } catch (IOException e) {
-            System.out.println("Error al cargar el grafo de zonas: " + e.getMessage());
+            System.out.print("Ingrese el nombre del domiciliario: ");
+            String nombreD = Lea.nextLine();
+            
+            System.out.print("Ingrese el codigo del domiciliario: ");
+            String codigoD = Lea.nextLine();
+            int codig = Integer.parseInt(codigoD);
+
+            sistema.listarZonasDisponibles();
+            System.out.print("Ingrese la zona donde se encuentra el domiciliario: ");
+            String zonaD = Lea.nextLine();
+
+            Domiciliario domiciliarioNuevo = new Domiciliario(nombreD, codig, zonaD);
+            domiciliarioActual = domiciliarioNuevo;
+            sistema.registrarDomiciliario(domiciliarioNuevo);
+            System.out.println();
+        } catch (NumberFormatException e){
+            System.out.println("El codigo debe ser un numero");
+        } catch (DatosInvalidosException e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    // ~~~~~~~~~ METODOS PARA CLIENTES ~~~~~~~~~~
+    private void iniciarSesion() {
+        System.out.println("Inicio de sesion de domiciliario");
 
-    public void registrarCliente(Cliente cliente) {
-        clientes.insertarFin(cliente);
-        System.out.println("Cliente registrado correctamente");
-    }
-
-    public Cliente ConsultarClienteCodigo(int codigo) {
-        for (int i = 0; i < clientes.getTamanio(); i++) {
-            Cliente c = clientes.obtener(i);
-            if (c.getCodigo() == codigo) {
-                return c;
+        try {
+            System.out.print("Ingrese su codigo del domiciliario: ");
+            String codigoD = Lea.nextLine();
+            
+            if (codigoD.isEmpty()){
+                System.out.println("Ingrese un codigo");
+                return;
             }
-        }
-        return null;
-    }
 
-    public ListaSimple<Pedido> historialPedidosCliente(Cliente cliente) {
-        ListaSimple<Pedido> historial = new ListaSimple<>();
-        Pila<Pedido> tmp = new Pila<>();
-
-        while (!historialPedidos.empty()) {
-            Pedido p = historialPedidos.pop();
-            if (p.getCliente().getCodigo() == cliente.getCodigo()) {
-                historial.insertarFin(p);
-            }
-            tmp.push(p);
-        }
-
-        while (!tmp.empty()) {
-            historialPedidos.push(tmp.pop());
-        }
-        return historial;
-    }
-
-    public void mostrarClientes() {
-        if (clientes.isEmpty()) {
-            System.out.println("No hay clientes registrados todavia....");
-            return;
-        }
-        clientes.recorrer();
-    }
-
-    // ~~~~~~~~~ METODOS PARA RESTAURANTES ~~~~~~~~~~
-
-    public void registrarRestaurante(Restaurante restaurante) {
-        restaurantes.insertarFin(restaurante);
-        System.out.println("Restaurante registrado exitosamente");
-    }
-
-    public Restaurante consultarRestaurantePorCodigo(int codigo) {
-
-        for (int i = 0; i < restaurantes.getTamanio(); i++) {
-            Restaurante tmp = restaurantes.obtener(i);
-            if (tmp.getCodigo() == codigo) {
-                return tmp;
-            }
-        }
-        return null;
-    }
-
-    public void verRestaurantes() {
-        if (restaurantes.isEmpty()) {
-            System.out.println("No hay restaurantes registrados todavia");
-            return;
-        }
-        restaurantes.recorrer();
-    }
-
-    public Restaurante encontrarRestauranteMasCercano(Domiciliario domiciliario) {
-        if (domiciliario == null)
-            return null;
-
-        List<String> zonasRestaurantes = new ArrayList<>();
-        Nodo<Restaurante> tmpRest = restaurantes.getFrente();
-        while (tmpRest != null) {
-            zonasRestaurantes.add(tmpRest.getDato().getZona());
-            tmpRest = tmpRest.getSiguiente();
-        }
-
-        String zonaMasCercana = grafoZonas.encontrarZonaRestauranteMasCercana(
-                domiciliario.getUbicacionActual(),
-                zonasRestaurantes);
-
-        if (zonaMasCercana != null) {
-            Nodo<Restaurante> actual = restaurantes.getFrente();
-            while (actual != null) {
-                if (actual.getDato().getZona().equals(zonaMasCercana)) {
-                    return actual.getDato();
-                }
-                actual = actual.getSiguiente();
-            }
-        }
-        return null;
-    }
-
-    // ~~~~~~~~~ METODOS PARA DOMICILIARIOS ~~~~~~~~~~
-
-    public void registrarDomiciliario(Domiciliario domiciliario) {
-        domiciliarios.insertarFin(domiciliario);
-        System.out.println("Domiciliario registrado exitosamente");
-    }
-
-    public Domiciliario buscarDomiciliarioPorCodigo(int codigo) {
-
-        for (int i = 0; i < domiciliarios.getTamanio(); i++) {
-            Domiciliario d = domiciliarios.obtener(i);
-            if (d.getCodigo() == codigo) {
-                return d;
-            }
-        }
-        return null;
-    }
-
-    public Domiciliario consultarDomiciliarioPorCodigo(int codigo) {
-
-        for (int i = 0; i < domiciliarios.getTamanio(); i++) {
-            Domiciliario d = domiciliarios.obtener(i);
-            if (d.getCodigo() == codigo) {
-                return d;
-            }
-        }
-        return null;
-    }
-
-    public void verDomiciliarios() {
-        if (domiciliarios.isEmpty()) {
-            System.out.println("No hay domiciliarios registrados todavia");
-            return;
-        }
-
-        domiciliarios.recorrer();
-    }
-
-    public Domiciliario buscarDomiciliarioMasCercano(String zonaRestaurante) {
-
-        Domiciliario masCercano = null;
-        double distanciaMinima = Double.POSITIVE_INFINITY;
-
-        for (int i = 0; i < domiciliarios.getTamanio(); i++) {
-            Domiciliario d = domiciliarios.obtener(i);
-
-            if (d.isDiponible()) {
-                double distancia = grafoZonas.obtenerDistanciaEntreZonas(
-                        d.getUbicacionActual(),
-                        zonaRestaurante);
-
-                if (distancia < distanciaMinima) {
-                    distanciaMinima = distancia;
-                    masCercano = d;
-                }
-            }
-        }
-
-        return masCercano;
-
-    }
-
-    // ~~~~~~~~~ METODOS PARA PEDIDOS ~~~~~~~~~~
-
-    public void crearPedido(Pedido pedido) {
-        pedidosActivos.encolar(pedido);
-        historialPedidos.push(pedido);
-        System.out.println("Pedido creado exitosamente");
-    }
-
-    public void entregarPedido() {
-        if (!pedidosActivos.isEmpty()) {
-            Pedido p = pedidosActivos.desencolar();
-            p.setEstado("Entregado");
-            pedidosEntregados.push(p);
-        }
-    }
-
-    public void cancelarPedido(int codigo) {
-        Cola<Pedido> temp = new Cola<>();
-        boolean encontrado = false;
-
-        while (!pedidosActivos.isEmpty()) {
-            Pedido p = pedidosActivos.desencolar();
-
-            if (p.getCodigo() == codigo) {
-                p.setEstado("cancelado");
-
-                if (p.getDomiciliario() != null) {
-                    p.getDomiciliario().setDiponible(true);
-                }
-
-                pedidosCancelados.push(p);
-                encontrado = true;
-                System.out.println("Pedido #" + codigo + " cancelado");
+            int codigoInt = Integer.parseInt(codigoD);
+            Domiciliario domicliarioEncontrado = sistema.buscarDomiciliarioPorCodigo(codigoInt);
+    
+            if (domicliarioEncontrado != null) {
+                domiciliarioActual = domicliarioEncontrado;
+                System.out.println("Sesion iniciada correctamente, Bienvenido " + domiciliarioActual.getNombre());
+                mostrarOpciones();
             } else {
-                temp.encolar(p);
+                System.out.println("No existe registro de un cliente con ese codigo.");
             }
-        }
-        while (!temp.isEmpty()) {
-            pedidosActivos.encolar(temp.desencolar());
-        }
-        if (!encontrado) {
-            System.out.println("Pedido no encontrado");
+        } catch(NumberFormatException e){
+            System.out.println("El codigo debe ser un numero");
         }
     }
 
-    public void mostrarPedidosActivos() {
-        if (pedidosActivos.isEmpty()) {
-            System.out.println("No hay pedidos activos");
-        }
-        pedidosActivos.imprimir();
+    private void mostrarOpciones() {
+        int opcionD = 0;
+        do {
+            System.out.println("1) Ver Pedidos Activos\n" +
+                    "2) Marcar como disponible\n" +
+                    "3) Marcar como ocupado\n" +
+                    "4) Buscar restaurante mas cercano\n" +
+                    "5) Cambiar ubicacion\n" +
+                    "6) Salir\n" +
+                    "Que opcion desea ejecutar?: ");
+            opcionD = Lea.nextInt();
+            Lea.nextLine();
+
+            switch (opcionD) {
+                case 1:
+                    sistema.mostrarPedidosActivos();
+                    break;
+                case 2:
+                    domiciliarioActual.setDiponible(true);
+                    break;
+                case 3:
+                    domiciliarioActual.setDiponible(false);
+                    break;
+                case 4:
+                    buscarRestauranteCercano(domiciliarioActual);
+                    break;
+                case 5:
+                    cambiarUbicacion(domiciliarioActual);
+                    break;
+                case 6:
+                    System.out.println("Saliendo del menu de opciones de la vista domiciliario.....");
+                    break;
+                default:
+                    System.out.println("Opcion Invalida");
+                    break;
+            }
+        } while (opcionD != 6);
+
     }
 
-    public void mostrarPedidosCancelados() {
-        if (pedidosCancelados.empty()) {
-            System.out.println("No hay pedidos cancelados");
-        }
-        pedidosCancelados.print_stack();
-    }
 
-    public void mostrarPedidosEntregados() {
-        if (pedidosEntregados.empty()) {
-            System.out.println("No hay pedidos entregados");
-        }
-        pedidosEntregados.print_stack();
-    }
+// ~~~~~~ METODOS ADCIONALES PROPIOS DE LA VISTA DOMICILIARIO ~~~~~~
 
-    public void VerHistorialPedidos() {
-        if (!historialPedidos.empty()) {
-            historialPedidos.print_stack();
+    private void cambiarUbicacion(Domiciliario domiciliario){
+        System.out.println("Escoja una de las zona disponibles");
+        sistema.listarZonasDisponibles();
+        String nuevaZona = Lea.nextLine();
+
+        if (!nuevaZona.isEmpty()){
+            domiciliarioActual.setUbicacionActual(nuevaZona);
+            System.out.println("Nueva zona asignada al domiciliario");
         } else {
-            System.out.println("No Hay Pedidos En Historial");
+            System.out.println("Zona invalida");
         }
     }
 
-    public void asignarDomiciliario(Pedido pedido) {
-        String zonaRestaurante = pedido.getRestaurante().getZona();
+    private void buscarRestauranteCercano(Domiciliario domiciliario){
+        System.out.println("Ubicacion actual del domiciliario: "+domiciliario.getUbicacionActual());
 
-        Domiciliario domiciliario = buscarDomiciliarioMasCercano(zonaRestaurante);
+        Restaurante restaurante = sistema.encontrarRestauranteMasCercano(domiciliario);
 
-        if (domiciliario == null) {
-            System.out.println("No hay domiciliarios disponibles");
+        if (sistema.getRestaurantes().isEmpty()){
+            System.out.println("No hay restaurantes todavia registrados en el sistema");
             return;
         }
 
-        double distancia = grafoZonas.obtenerDistanciaEntreZonas(
-                domiciliario.getUbicacionActual(),
-                zonaRestaurante);
-
-        pedido.setDomiciliario(domiciliario);
-        pedido.setEstado("asignado");
-        domiciliario.setDiponible(false);
-
-        System.out.println("Pedido asignado a " + domiciliario.getNombre());
-        System.out.println("Distancia: " + distancia + " minutos");
-    }
-
-    public void listarZonasDisponibles() {
-        Set<String> zonas = grafoZonas.obtenerZonas();
-
-        if (zonas == null || zonas.isEmpty()) {
-            System.out.println("No hay zonas cargadas en el grafo");
-            return;
+        if (restaurante==null){
+            System.out.println("Restaurante no encontrado");
         }
 
-        System.out.println("Zonas Disponibles");
-
-        int i = 1;
-        for (String zona : zonas) {
-            System.out.println(i++ + ". " + zona);
-        }
-        System.out.println();
-
+        System.out.println("Restaurante mas cercano: ");
+        System.out.print(restaurante.toString());
     }
-
-    /**
-     * Muestra las zonas disponibles y solicita al usuario que ingrese la zona.
-     * Se puede invocar desde las vistas al registrar
-     * Cliente/Restaurante/Domiciliario.
-     * Devuelve la cadena ingresada (zona) o null si no se ingresó nada.
-     */
-    public String solicitarZonaRegistro() {
-        listarZonasDisponibles();
-        System.out.print("Ingrese la zona (copie exactamente el nombre): ");
-        Scanner sc = new Scanner(System.in);
-        String zona = sc.nextLine().trim();
-        if (zona.isEmpty())
-            return null;
-        return zona;
-    }
-
-    /**
-     * Intento por reflexión de asignar la zona indicada al objeto entidad.
-     * Soporta setters comunes: setZona, setUbicacionActual, setUbicacion,
-     * setDireccion
-     * Devuelve true si se pudo asignar.
-     */
-    public boolean asignarZonaPorReflexion(Object entidad, String zona) {
-        if (entidad == null || zona == null)
-            return false;
-        String[] posibles = { "setZona", "setUbicacionActual", "setUbicacion", "setDireccion" };
-        for (String metodo : posibles) {
-            try {
-                Method m = entidad.getClass().getMethod(metodo, String.class);
-                m.invoke(entidad, zona);
-                return true;
-            } catch (NoSuchMethodException ns) {
-                // seguir probando otros nombres
-            } catch (Exception e) {
-                // si ocurre otra excepción, reportar y intentar el siguiente
-                System.out.println("Error asignando zona mediante " + metodo + ": " + e.getMessage());
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Muestra en consola el camino más corto del domiciliario -> restaurante ->
-     * cliente
-     * para el pedido dado. Usa el grafo para calcular rutas.
-     */
-    public void mostrarCaminoCompletoPedido(Pedido pedido) {
-        if (pedido == null) {
-            System.out.println("Pedido nulo");
-            return;
-        }
-        if (pedido.getDomiciliario() == null) {
-            System.out.println("Pedido sin domiciliario asignado");
-            return;
-        }
-        if (pedido.getRestaurante() == null) {
-            System.out.println("Pedido sin restaurante asignado");
-            return;
-        }
-
-        String origen = pedido.getDomiciliario().getUbicacionActual();
-        String zonaRest = pedido.getRestaurante().getZona();
-        String zonaCliente = obtenerZonaClientePorReflexion(pedido.getCliente());
-
-        System.out.println("Camino para Pedido #" + pedido.getCodigo() + ":");
-        System.out.println("Domiciliario (origen): " + origen);
-        System.out.println("Restaurante (zona): " + zonaRest);
-        System.out.println("Cliente (zona/destino): " + (zonaCliente != null ? zonaCliente : "Desconocida"));
-
-        // desde domiciliario hasta restaurante
-        GrafoZonas.ResultadoCamino tramo1 = grafoZonas.dijkstra(origen, zonaRest);
-        if (tramo1 == null || Double.isInfinite(tramo1.distancia)) {
-            System.out.println("No se encontró ruta desde el domiciliario hasta el restaurante.");
-        } else {
-            System.out.println("Ruta domiciliario -> restaurante (" + tramo1.distancia + " minutos): "
-                    + String.join(" -> ", tramo1.camino));
-        }
-
-        // desde restaurante hasta cliente (si se conoce la zona del cliente)
-        if (zonaCliente != null) {
-            GrafoZonas.ResultadoCamino tramo2 = grafoZonas.dijkstra(zonaRest, zonaCliente);
-            if (tramo2 == null || Double.isInfinite(tramo2.distancia)) {
-                System.out.println("No se encontró ruta desde el restaurante hasta el cliente.");
-            } else {
-                System.out.println("Ruta restaurante -> cliente (" + tramo2.distancia + " minutos): "
-                        + String.join(" -> ", tramo2.camino));
-            }
-        } else {
-            System.out.println("No se puede calcular restaurante -> cliente: zona del cliente desconocida.");
-        }
-    }
-
-    /**
-     * Intenta obtener la zona del cliente usando reflexion.
-     * Busca getters comunes: getZona, getUbicacion, getDireccion
-     * Devuelve null si no encuentra.
-     */
-    private String obtenerZonaClientePorReflexion(Cliente cliente) {
-        if (cliente == null)
-            return null;
-        String[] getters = { "getZona", "getUbicacion", "getDireccion" };
-        for (String g : getters) {
-            try {
-                Method m = cliente.getClass().getMethod(g);
-                Object res = m.invoke(cliente);
-                if (res != null)
-                    return res.toString();
-            } catch (NoSuchMethodException ns) {
-                // siguiente intento
-            } catch (Exception e) {
-                System.out.println("Error al obtener zona del cliente con " + g + ": " + e.getMessage());
-            }
-        }
-        return null;
-    }
-
-    // ~~~~~~~~ METODOS PARA GRAFO ~~~~~~~~~
-
-    public GrafoZonas getGrafoZonas() {
-        return grafoZonas;
-    }
-
-    // ~~~~~~~~ METODOS GETTERS ~~~~~~~~~
-
-    public ListaSimple<Cliente> getClientes() {
-        return clientes;
-    }
-
-    public ListaSimple<Restaurante> getRestaurantes() {
-        return restaurantes;
-    }
-
-    public ListaSimple<Domiciliario> getDomiciliarios() {
-        return domiciliarios;
-    }
-
-    public Cola<Pedido> getPedidosActivos() {
-        return pedidosActivos;
-    }
-
-    public Pila<Pedido> getPedidosCancelados() {
-        return pedidosCancelados;
-    }
-
-    public Pila<Pedido> getPedidosEntregados() {
-        return pedidosEntregados;
-    }
-
-    public Pila<Pedido> getHistorialPedidos() {
-        return historialPedidos;
-    }
-
 }
