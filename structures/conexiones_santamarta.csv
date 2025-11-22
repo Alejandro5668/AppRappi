@@ -1,0 +1,24 @@
+Origen,Destino,Tiempo
+Centro Histórico,Rodadero,20
+Centro Histórico,Taganga,15
+Centro Histórico,Bello Horizonte,25
+Centro Histórico,Mamatoco,10
+Centro Histórico,Pescaíto,5
+Centro Histórico,El Prado,8
+Rodadero,Gaira,10
+Rodadero,Pozos Colorados,12
+Gaira,Aeropuerto,8
+Bello Horizonte,Pozos Colorados,15
+Mamatoco,Bonda,18
+Mamatoco,Parque Tayrona,30
+Bonda,Minca,25
+Pescaíto,Bastidas,12
+El Prado,Jardín,7
+El Prado,Terminal de Transporte,15
+Jardín,Mamatoco,10
+Terminal de Transporte,Aeropuerto,20
+Pozos Colorados,Aeropuerto,15
+Taganga,Mamatoco,22
+Rodadero,Bello Horizonte,8
+Gaira,Pozos Colorados,5
+Bonda,Parque Tayrona,35
